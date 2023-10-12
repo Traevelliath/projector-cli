@@ -12,34 +12,23 @@ pub struct Projector {
     config: Config,
     data: Data,
 }
-fn default_projector(config: &Config) -> Projector {
-    let data = Data::default();
-    return Projector {
-        config: config.clone(),
-        data,
-    };
-}
-impl From<&Config> for Projector {
-    fn from(config: &Config) -> Self {
-        if std::fs::metadata(&config.config).is_err() {
-            return default_projector(config);
-        }
-
-        if let Ok(data) = std::fs::read_to_string(&config.config) {
-            let data = serde_json::from_str(&data);
-            if let Ok(data) = data {
-                return Projector {
-                    config: config.clone(),
-                    data,
-                };
-            }
-        }
-
-        return default_projector(config);
-    }
-}
 
 impl Projector {
+    fn default(config: &Config) -> Self {
+        let data = Data::default();
+        return Self {
+            config: config.clone(),
+            data,
+        };
+    }
+
+    fn new(config: &Config, data: Data) -> Self {
+        return Self {
+            config: config.clone(),
+            data,
+        };
+    }
+
     pub fn get_value_all(&self) -> HashMap<&String, &String> {
         let mut current = Some(self.config.pwd.as_path());
         let mut paths = vec![];
@@ -78,7 +67,7 @@ impl Projector {
     pub fn set_value(&mut self, key: &str, value: &str) {
         self.data
             .projector
-            .entry(self.config.pwd.clone())
+            .entry(self.config.pwd.to_path_buf())
             .or_default()
             .insert(key.into(), value.into());
     }
@@ -99,6 +88,23 @@ impl Projector {
         let contents = serde_json::to_string_pretty(&self.data)?;
         std::fs::write(&self.config.config, contents)?;
         return Ok(());
+    }
+}
+
+impl From<&Config> for Projector {
+    fn from(config: &Config) -> Self {
+        if std::fs::metadata(&config.config).is_err() {
+            return Projector::default(config);
+        }
+
+        if let Ok(data) = std::fs::read_to_string(&config.config) {
+            let data = serde_json::from_str(&data);
+            if let Ok(data) = data {
+                return Projector::new(config, data);
+            }
+        }
+
+        return Projector::default(config);
     }
 }
 
