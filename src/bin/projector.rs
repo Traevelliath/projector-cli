@@ -15,7 +15,9 @@ fn main() -> Result<()> {
             println!("{}", value);
         }
         Operation::Print(Some(k)) => {
-            projector.get_value(&k).map(|x| println!("{}", x));
+            if let Some(x) = projector.get_value(&k) {
+                println!("{}", x)
+            }
         }
         Operation::Add(k, v) => {
             projector.set_value(&k, &v);

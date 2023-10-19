@@ -32,7 +32,7 @@ impl TryFrom<Vec<String>> for Operation {
 
     fn try_from(value: Vec<String>) -> Result<Self> {
         let mut value = value;
-        if value.len() == 0 {
+        if value.is_empty() {
             return Ok(Operation::Print(None));
         }
 
