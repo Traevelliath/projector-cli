@@ -81,7 +81,7 @@ impl Projector {
 
     pub fn save(&self) -> Result<()> {
         if let Some(p) = self.config.config.parent() {
-            if std::fs::metadata(&p).is_err() {
+            if std::fs::metadata(p).is_err() {
                 std::fs::create_dir_all(p)?;
             }
         }
